@@ -6,6 +6,18 @@ import TripCard, { TripCardProps } from '../components/TripCard';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Filter, FilterX } from 'lucide-react';
 
 // Sample data for upcoming trips
 const allTrips: TripCardProps[] = [
@@ -75,6 +87,8 @@ const UpcomingTrips: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDestination, setSelectedDestination] = useState('Tous');
   const [priceRange, setPriceRange] = useState([2000, 6000]);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [sortBy, setSortBy] = useState('recommended');
   
   const filteredTrips = allTrips.filter(trip => {
     // Filter by search term
@@ -88,7 +102,28 @@ const UpcomingTrips: React.FC = () => {
     const matchesPrice = trip.price >= priceRange[0] && trip.price <= priceRange[1];
     
     return matchesSearch && matchesDestination && matchesPrice;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case 'price-asc':
+        return a.price - b.price;
+      case 'price-desc':
+        return b.price - a.price;
+      case 'date-asc':
+        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+      case 'date-desc':
+        return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+      case 'recommended':
+      default:
+        return a.featured ? -1 : b.featured ? 1 : 0;
+    }
   });
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setSelectedDestination('Tous');
+    setPriceRange([2000, 6000]);
+    setSortBy('recommended');
+  };
 
   return (
     <div>
@@ -105,9 +140,35 @@ const UpcomingTrips: React.FC = () => {
           </div>
         </section>
         
-        {/* Filter Section */}
-        <section className="bg-white py-8 shadow-md">
+        {/* Filter Section - Desktop */}
+        <section className="bg-white py-8 shadow-md border-b hidden md:block">
           <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-serif font-bold">Filtres</h2>
+              <div className="flex items-center gap-4">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2" 
+                  onClick={resetFilters}
+                >
+                  <FilterX size={16} />
+                  Réinitialiser
+                </Button>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Trier par" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recommended">Recommandés</SelectItem>
+                    <SelectItem value="price-asc">Prix croissant</SelectItem>
+                    <SelectItem value="price-desc">Prix décroissant</SelectItem>
+                    <SelectItem value="date-asc">Date (plus proche)</SelectItem>
+                    <SelectItem value="date-desc">Date (plus lointaine)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
               <div className="md:col-span-4">
                 <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
@@ -144,15 +205,119 @@ const UpcomingTrips: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Fourchette de prix: {priceRange[0]} TND - {priceRange[1]} TND
                 </label>
-                <Slider
-                  value={priceRange}
-                  min={2000}
-                  max={6000}
-                  step={100}
-                  onValueChange={(value) => setPriceRange(value as [number, number])}
-                  className="py-4"
-                />
+                <div className="px-2">
+                  <Slider
+                    value={priceRange}
+                    min={2000}
+                    max={6000}
+                    step={100}
+                    onValueChange={(value) => setPriceRange(value as [number, number])}
+                    className="py-6"
+                  />
+                </div>
+                <div className="flex justify-between text-sm text-gray-600 mt-1">
+                  <span>2000 TND</span>
+                  <span>6000 TND</span>
+                </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Filter Section - Mobile */}
+        <section className="bg-white py-4 shadow-md border-b md:hidden">
+          <div className="container mx-auto px-4">
+            <div className="flex justify-between items-center">
+              <Collapsible 
+                open={showMobileFilters} 
+                onOpenChange={setShowMobileFilters}
+                className="w-full"
+              >
+                <div className="flex justify-between items-center">
+                  <CollapsibleTrigger asChild>
+                    <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <Filter size={16} />
+                      Filtres
+                    </Button>
+                  </CollapsibleTrigger>
+                  
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="Trier par" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="recommended">Recommandés</SelectItem>
+                      <SelectItem value="price-asc">Prix ↑</SelectItem>
+                      <SelectItem value="price-desc">Prix ↓</SelectItem>
+                      <SelectItem value="date-asc">Date ↑</SelectItem>
+                      <SelectItem value="date-desc">Date ↓</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <CollapsibleContent className="mt-4 space-y-4">
+                  <div>
+                    <label htmlFor="mobile-search" className="block text-sm font-medium text-gray-700 mb-1">
+                      Rechercher
+                    </label>
+                    <Input 
+                      id="mobile-search"
+                      type="text" 
+                      placeholder="Nom ou destination" 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="mobile-destination" className="block text-sm font-medium text-gray-700 mb-1">
+                      Destination
+                    </label>
+                    <Select value={selectedDestination} onValueChange={setSelectedDestination}>
+                      <SelectTrigger id="mobile-destination">
+                        <SelectValue placeholder="Toutes les destinations" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {destinations.map(destination => (
+                          <SelectItem key={destination} value={destination}>
+                            {destination}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Prix: {priceRange[0]} - {priceRange[1]} TND
+                    </label>
+                    <div className="px-2">
+                      <Slider
+                        value={priceRange}
+                        min={2000}
+                        max={6000}
+                        step={100}
+                        onValueChange={(value) => setPriceRange(value as [number, number])}
+                        className="py-6"
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-600">
+                      <span>2000 TND</span>
+                      <span>6000 TND</span>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full flex items-center justify-center gap-2" 
+                    onClick={resetFilters}
+                  >
+                    <FilterX size={16} />
+                    Réinitialiser les filtres
+                  </Button>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
           </div>
         </section>
