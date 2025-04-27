@@ -1,12 +1,18 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CalendarDays, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const HeroSection = () => {
+  const [date, setDate] = useState<Date | undefined>(undefined);
+
   return (
     <div className="hero-section min-h-screen flex flex-col items-center justify-center px-4 pt-20">
       <div className="text-center text-white max-w-4xl mx-auto">
@@ -55,10 +61,28 @@ const HeroSection = () => {
 
           <div>
             <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-            <div className="relative">
-              <Input type="text" placeholder="Quand souhaitez-vous partir?" />
-              <CalendarDays className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  {date ? (
+                    format(date, 'PP', { locale: fr })
+                  ) : (
+                    <span className="text-muted-foreground">Quand souhaitez-vous partir?</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                  locale={fr}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="flex items-end">
