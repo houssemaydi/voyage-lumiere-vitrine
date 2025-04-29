@@ -11,7 +11,8 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 const HeroSection = () => {
-  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   return (
     <div className="hero-section min-h-screen flex flex-col items-center justify-center px-4 pt-20">
@@ -43,7 +44,7 @@ const HeroSection = () => {
       {/* Search Bar */}
       <div className="w-full max-w-4xl mx-auto mt-16 bg-white/95 backdrop-blur-md rounded-xl p-6 shadow-lg animate-fade-in" style={{animationDelay: "0.6s"}}>
         <h2 className="text-2xl font-serif text-gray-800 mb-4">Trouvez votre prochain voyage</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label htmlFor="destination" className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
             <Select>
@@ -60,26 +61,64 @@ const HeroSection = () => {
           </div>
 
           <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">Date de départ</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start text-left font-normal">
                   <CalendarDays className="mr-2 h-4 w-4" />
-                  {date ? (
-                    format(date, 'PP', { locale: fr })
+                  {startDate ? (
+                    format(startDate, 'dd/MM/yyyy', { locale: fr })
                   ) : (
-                    <span className="text-muted-foreground">Quand souhaitez-vous partir?</span>
+                    <span className="text-muted-foreground">Date de départ</span>
                   )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <Calendar
                   mode="single"
-                  selected={date}
-                  onSelect={setDate}
+                  selected={startDate}
+                  onSelect={setStartDate}
                   initialFocus
                   className="p-3 pointer-events-auto"
                   locale={fr}
+                  disabled={(date) => 
+                    // Disable dates in the past
+                    date < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                    // Disable dates after endDate if an endDate is selected
+                    (endDate ? date > endDate : false)
+                  }
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div>
+            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">Date de retour</label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  {endDate ? (
+                    format(endDate, 'dd/MM/yyyy', { locale: fr })
+                  ) : (
+                    <span className="text-muted-foreground">Date de retour</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={endDate}
+                  onSelect={setEndDate}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                  locale={fr}
+                  disabled={(date) => 
+                    // Disable dates in the past
+                    date < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                    // Disable dates before startDate if a startDate is selected
+                    (startDate ? date < startDate : false)
+                  }
                 />
               </PopoverContent>
             </Popover>
